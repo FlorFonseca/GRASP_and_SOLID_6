@@ -9,13 +9,13 @@ using System.Collections.Generic;
 
 namespace Full_GRASP_And_SOLID
 {
+
     public class Recipe : IRecipeContent // Modificado por DIP
     {
         // Cambiado por OCP
         private IList<BaseStep> steps = new List<BaseStep>();
-
         public Product FinalProduct { get; set; }
-
+        public bool Cooked { get; private set; }
         // Agregado por Creator
         public void AddStep(Product input, double quantity, Equipment equipment, int time)
         {
@@ -61,6 +61,39 @@ namespace Full_GRASP_And_SOLID
             }
 
             return result;
+        }
+        //Agregado por expert
+        public int GetCookTime()
+        {
+            int overallCookingTime = 0;
+            foreach (BaseStep step in this.steps)
+            {
+                overallCookingTime = overallCookingTime + step.Time;
+            }
+            return overallCookingTime;
+        }
+        //Agregado por Expert
+        public void Cook()
+        {
+            this.Cooked = false;
+            int overallTime = GetCookTime();
+            RecipeAdapter recipeAdapter = new RecipeAdapter(this);
+            CountdownTimer countdownTimer = new CountdownTimer();
+            countdownTimer.Register(overallTime,recipeAdapter);
+        }
+        //Por Adapter
+        public class RecipeAdapter : TimerClient
+        {
+            private Recipe recipe;
+            public RecipeAdapter(Recipe recipe)
+            {
+                this.recipe = recipe;
+            }
+            public void TimeOut()
+            {
+
+                this.recipe.Cooked = true;
+            }
         }
     }
 }
